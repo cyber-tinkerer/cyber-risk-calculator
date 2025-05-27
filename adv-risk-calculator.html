@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity ROI Calculator - Security Leaders</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative; /* For positioning help button */
+        }
+
+        .header-content {
+            max-width: 800px; /* Limit width of text content */
+            margin: 0 auto;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 20px; /* Space for help button */
+        }
+
+        .help-button-container {
+            margin-top: 15px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr; 
+            gap: 40px;
+            padding: 40px;
+        }
+        
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+        }
+        
+        .results-section {
+            background: #fff;
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 15px; 
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .scenario-group {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .scenario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .scenario-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .remove-scenario {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .remove-scenario:hover {
+            background: #c0392b;
+        }
+        
+        .input-row { 
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-group label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .input-group input, .input-group select {
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            width: 100%;
+            min-width: fit-content;
+            background: white;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background 0.3s;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+        }
+        
+        .btn-success:hover {
+            background: #229954;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-help { 
+            background: #546e7a; 
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+        .btn-help:hover {
+            background: #455a64;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .metric-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .roi-positive {
+            background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+        }
+        
+        .roi-negative {
+            background: linear-gradient(135deg, #e17055 0%, #d63031 100%);
+        }
+        
+        .cost-breakdown { 
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 10px; 
+            margin-bottom: 30px; 
+        }
+        
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .cost-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            background: #e9ecef;
+            margin: 10px -20px -20px -20px;
+            padding: 15px 20px;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .info-text {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0; 
+            border-radius: 5px;
+            font-size: 0.9rem;
+            color: #1565c0;
+        }
+        #risk-adjustment-info { 
+             margin-top: 15px;
+             margin-bottom: 0; 
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.6); 
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; 
+            padding: 30px;
+            border: 1px solid #888;
+            width: 80%; 
+            max-width: 900px; 
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-height: 80vh; 
+            overflow-y: auto; 
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #1e3c72;
+            font-size: 1.8rem;
+        }
+
+        .close-button {
+            color: #aaa;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+        }
+
+        .modal-body h3 {
+            color: #2a5298;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+         .modal-body h4 {
+            color: #2c3e50;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .modal-body p, .modal-body ul {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 15px;
+        }
+         .modal-body ul {
+            list-style-position: inside;
+            padding-left: 20px; /* Default padding for main ul */
+        }
+         .modal-body ul ul, .modal-body ol ol { /* Nested lists */
+            margin-left: 20px;
+            padding-left: 0; /* Reset padding for nested to align with parent li text */
+         }
+         .modal-body li {
+            margin-bottom: 8px;
+         }
+         .modal-body li li { /* More specific for nested li if needed */
+            margin-bottom: 3px;
+         }
+         .modal-body strong {
+            color: #1e3c72;
+         }
+         .modal-body em {
+            color: #555;
+            font-style: italic;
+         }
+        
+        @media (max-width: 992px) { 
+            .input-row { 
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr; 
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .input-row { 
+                grid-template-columns: 1fr;
+            }
+             .scenario-group .input-row { 
+                grid-template-columns: 1fr; 
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+             .header p {
+                margin-bottom: 10px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .modal-content {
+                width: 90%;
+                margin: 10% auto;
+                padding: 20px;
+            }
+            .modal-header h2 {
+                font-size: 1.5rem;
+            }
+            .modal-body h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1>Cybersecurity ROI Calculator</h1>
+                <p>Quantify your cybersecurity investment for your organization</p>
+            </div>
+            <div class="help-button-container">
+                <button id="help-modal-button" class="btn btn-help">ℹ️ Learn More / Help</button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">Organization Profile</h2>
+                <div class="cost-breakdown"> 
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Industry Sector</label>
+                            <select id="industry-select" onchange="applyIndustryRegionAdjustments()">
+                                <option value="technology">Technology</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="financial">Financial Services</option>
+                                <option value="manufacturing">Manufacturing</option>
+                                <option value="retail">Retail & E-commerce</option>
+                                <option value="education">Education</option>
+                                <option value="government">Government & Public</option>
+                                <option value="energy">Energy & Utilities</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Primary Region</label>
+                            <select id="region-select" onchange="applyIndustryRegionAdjustments()">
+                                <option value="north-america">North America</option>
+                                <option value="europe">Europe</option>
+                                <option value="asia-pacific">Asia Pacific</option>
+                                <option value="latin-america">Latin America</option>
+                                <option value="middle-east-africa">Middle East & Africa</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Company Size</label>
+                            <select id="size-select" onchange="applyIndustryRegionAdjustments()">
+                                <option value="startup">Startup (1-50 employees)</option>
+                                <option value="small">Small (51-250 employees)</option>
+                                <option value="medium">Medium (251-1000 employees)</option>
+                                <option value="large">Large (1000+ employees)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Type of Infrastructure</label>
+                            <select id="infra-type-select" onchange="applyIndustryRegionAdjustments()">
+                                <option value="hybrid-cloud">Hybrid Cloud</option>
+                                <option value="public-cloud">Public Cloud (Single)</option>
+                                <option value="private-cloud">Private Cloud (Single)</option>
+                                <option value="multi-cloud">Multi-Cloud</option>
+                                <option value="on-premise">On-Premise</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Infrastructure Complexity</label>
+                            <select id="infra-complexity-select" onchange="applyIndustryRegionAdjustments()">
+                                <option value="centralized-simplified">Centralized (Simplified)</option>
+                                <option value="centralized-complex">Centralized (Complex)</option>
+                                <option value="decentralized-complex">Decentralized (Complex)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="risk-adjustment-info" class="info-text" style="margin-top: 15px; display: none;">
+                        </div>
+                </div>
+
+                <h2 class="section-title" style="margin-top: 40px;">Current Security Program Costs</h2>
+                <div class="cost-breakdown">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label>Security Team Salaries (Annual)</label>
+                        <input type="text" inputmode="numeric" id="salary-costs" value="750000" oninput="calculateROI()">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label>Tools & Technology (Annual)</label>
+                        <input type="text" inputmode="numeric" id="tool-costs" value="200000" oninput="calculateROI()">
+                    </div>
+                    <div class="input-group">
+                        <label>Consulting & Assessments (Annual)</label>
+                        <input type="text" inputmode="numeric" id="consulting-costs" value="50000" oninput="calculateROI()">
+                    </div>
+                </div>
+                
+                <h2 class="section-title" style="margin-top: 40px;">Risk Scenarios</h2>
+                <div class="info-text"> 
+                    <strong>Based on 2024 IBM/Ponemon & Verizon DBIR data (Global Averages):</strong><br>
+                    • Average breach cost: $4.45M globally (IBM 2024). US average is higher.<br>
+                    • Note: Specific SLEs in default scenarios are illustrative starting points.<br>
+                    • Organizations with AI/automation save significantly per incident.
+                </div>
+                <div id="scenarios-container">
+                    </div>
+                <button class="btn" onclick="addScenario()">+ Add Scenario</button>
+                <button class="btn btn-secondary" onclick="loadDefaults()">Load Common Scenarios</button>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="exportToExcel()">📊 Export to Excel</button>
+                    <button class="btn btn-secondary" onclick="saveData()">💾 Save Data</button>
+                    <button class="btn btn-secondary" onclick="loadData()">📁 Load Data</button>
+                </div>
+            </div>
+            
+            <div class="results-section">
+                <h2 class="section-title">Financial Impact Analysis</h2>
+                
+                <div class="metric-card">
+                    <div class="metric-value" id="baseline-ale">$0</div>
+                    <div class="metric-label">Baseline Annual Risk</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value" id="residual-ale">$0</div>
+                    <div class="metric-label">Residual Annual Risk</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value" id="risk-reduction">$0</div>
+                    <div class="metric-label">Annual Risk Reduction</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value" id="program-cost">$0</div>
+                    <div class="metric-label">Total Program Cost</div>
+                </div>
+                
+                <div class="metric-card" id="roi-card">
+                    <div class="metric-value" id="roi-value">0%</div>
+                    <div class="metric-label">Return on Investment</div>
+                </div>
+                
+                <div class="info-text">
+                    <strong>Executive Summary:</strong><br>
+                    <span id="executive-summary">Configure your scenarios above to see the analysis.</span>
+                </div>
+                
+                <h3 style="color: #2c3e50; margin-top: 30px;">Risk Scenario Breakdown</h3>
+                <div id="scenario-breakdown">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>About the Cybersecurity ROI Calculator</h2>
+                <span class="close-button" id="close-help-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>This calculator helps organizations quantify the financial return on their cybersecurity investments by analyzing potential risk scenarios and the impact of security controls.</p>
+
+                <h3>Methodology Used ⚙️</h3>
+                <p>The calculator employs standard risk management principles to estimate potential financial losses and savings:</p>
+                <ul>
+                    <li><strong>Single Loss Event (SLE):</strong> The estimated financial cost of a single security incident for a specific scenario. You input an <em>SLE</em> value, which is then adjusted based on your organization's profile (industry, region, size, infrastructure type, and complexity).</li>
+                    <li><strong>Annualized Rate of Occurrence (ARO):</strong> The estimated probability (as a percentage) that a specific threat event will occur within one year. You input an <em>ARO</em> value, which is also adjusted by the organizational profile. The ARO is capped at 95% after adjustments.</li>
+                    <li><strong>Annualized Loss Expectancy (ALE):</strong> This is the core calculation for annual risk.
+                        <ul>
+                            <li><em>Adjusted SLE ($) × Adjusted ARO (%) = ALE ($) per scenario</em></li>
+                        </ul>
+                    </li>
+                    <li><strong>Baseline Annual Risk:</strong> The total ALE calculated across all defined scenarios <em>before</em> applying your security program's risk reduction measures. This represents your current potential annual loss from these cyber threats.</li>
+                    <li><strong>Risk Reduction (%):</strong> For each scenario, you estimate the percentage by which your security controls will reduce the ALE. This reduction can come from decreasing the likelihood (ARO) or the impact (SLE) of an incident.
+                        <p style="font-size: 0.9em; margin-top: 5px; color: #555;"><em>The default Risk Reduction percentages are illustrative estimates of what a robust set of security controls might achieve for these scenarios. These are not direct figures from the cited reports for overall ALE reduction but are informed by the general scale of cost savings and effectiveness discussed for various security measures. Users should adjust these based on their specific control environment and maturity. The pre-loaded default scenarios now use more conservative risk reduction estimates to provide a cautious baseline. Organizations with mature and comprehensive security programs may achieve significantly higher risk reduction percentages, and are encouraged to adjust these values upwards to reflect their specific capabilities.</em></p>
+                    </li>
+                    <li><strong>Residual Annual Risk:</strong> The total ALE remaining <em>after</em> applying the risk reduction from your security controls.
+                        <ul>
+                            <li><em>Baseline ALE per scenario × (1 - Risk Reduction %) = Residual ALE per scenario</em></li>
+                        </ul>
+                    </li>
+                    <li><strong>Annual Risk Reduction (Savings):</strong> The difference between the Baseline Annual Risk and the Residual Annual Risk. This figure represents the financial benefit or savings your cybersecurity program provides.
+                         <ul>
+                            <li><em>Total Baseline ALE - Total Residual ALE = Total Annual Risk Reduction</em></li>
+                        </ul>
+                    </li>
+                    <li><strong>Total Program Cost:</strong> The sum of annual expenses for your security program, including salaries, tools & technology, and consulting/assessments.</li>
+                    <li><strong>Return on Investment (ROI):</strong> Measures the efficiency of your cybersecurity investment.
+                        <ul>
+                            <li><em>((Total Annual Risk Reduction - Total Program Cost) / Total Program Cost) × 100% = ROI (%)</em></li>
+                        </ul>
+                    </li>
+                    <li><strong>Scenario ROI (in Risk Scenario Breakdown):</strong> For each individual risk scenario, an estimated ROI is calculated. This is determined by:
+                        <ol type="a" style="margin-left: 20px; margin-top: 5px; padding-left: 0;">
+                            <li style="margin-bottom: 3px;">Calculating the <strong>Scenario Annual Savings</strong> (Scenario Baseline ALE - Scenario Residual ALE).</li>
+                            <li style="margin-bottom: 3px;">Allocating a portion of the <strong>Total Program Cost</strong> to that scenario. This allocation is proportional to the scenario's Baseline ALE relative to the Total Baseline ALE across all scenarios.
+                                <ul style="margin-left: 20px; margin-top:3px; padding-left: 0;"><li><em>Allocated Cost for Scenario = Total Program Cost × (Scenario Baseline ALE / Total Baseline ALE)</em></li></ul>
+                            </li>
+                            <li style="margin-bottom: 3px;">Calculating the Scenario ROI:
+                                <ul style="margin-left: 20px; margin-top:3px; padding-left: 0;"><li><em>Scenario ROI = ((Scenario Annual Savings - Allocated Cost for Scenario) / Allocated Cost for Scenario) × 100%</em></li></ul>
+                                (Note: If allocated cost is zero and savings are positive, ROI is 'Infinite'. If allocated cost is zero and savings are not positive, it's 'N/A'.)
+                            </li>
+                        </ol>
+                    </li>
+                </ul>
+                <p><em>Adjustments for Industry, Region, Company Size, Infrastructure Type, and Infrastructure Complexity are applied as multipliers to the base SLE and base ARO values to tailor risk estimates to your organization's context. These multipliers are derived from trends and data observed in industry reports such as the IBM "Cost of a Data Breach Report."</em></p>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px; color: #2c3e50;">A Note on Company Size Tiers and Data Sources:</h4>
+                <p>The company size tiers used in this calculator (Startup: 1-50, Small: 51-250, Medium: 251-1000, Large: 1000+ employees) are designed to offer a practical approach for applying size-based risk adjustments. Here’s how they relate to common industry reports:</p>
+                <ul>
+                    <li><strong>IBM's 'Cost of a Data Breach Report':</strong> Historically, this report has shown significant variations in average data breach costs across different employee bands. While the most recent report (published in 2024) emphasizes other cost drivers more prominently in its summaries, the underlying principle that organizational scale and complexity influence overall breach costs remains a key consideration. Our tiers provide a model to reflect these general scaled differences.</li>
+                    <li><strong>Verizon's 'Data Breach Investigations Report (DBIR)':</strong> This report frequently differentiates between Small and Medium-sized Businesses (SMBs – often those with fewer than 1,000 employees) and Large Organizations, particularly when analyzing threat patterns and incident frequencies. Our 'Large' tier (1000+ employees) aligns with this common delineation for large enterprises, while our 'Startup,' 'Small,' and 'Medium' tiers offer further granularity within the diverse SMB category. The frequency multipliers in the calculator for company size attempt to generally reflect that attack patterns and target attractiveness can differ by organizational scale.</li>
+                </ul>
+                <p>The specific cost and frequency multipliers for the calculator's size tiers are illustrative, based on these general industry observations and historical data trends, and aim to provide a reasonable starting point. Users are strongly encouraged to consider their unique circumstances and adjust scenario inputs accordingly. By using these tiers, the calculator applies nuanced adjustments that reflect broad trends in how company size influences breach characteristics and potential costs. Adjustments for infrastructure type and complexity are also based on cost variations and system complexity factors highlighted in recent IBM reports.</p>
+
+
+                <h3>Data Sources 📊</h3>
+                <p>The default risk scenarios and adjustment factors are informed by publicly available cybersecurity research and reports, including (but not limited to):</p>
+                <ul>
+                    <li><strong>IBM & Ponemon Institute's "Cost of a Data Breach Report" (e.g., 2024 data cited):</strong> Provides insights into average breach costs globally (e.g., $4.45M in 2024), industry-specific trends, cost variations by company size (historically), infrastructure type (hybrid, public/private cloud, on-premise), system complexity, and the impact of various security measures like AI/automation.</li>
+                    <li><strong>Verizon "Data Breach Investigations Report" (DBIR) (e.g., 2024/2025 data cited):</strong> Offers statistics on breach patterns, threat actors, common attack vectors (like ransomware, human error), and third-party risks, often distinguishing between SMBs and large organizations.</li>
+                </ul>
+                <p>These sources provide valuable benchmarks. However, it's crucial to <strong>replace default values with your organization's specific data and context</strong> whenever possible for the most accurate results.</p>
+
+                <h3>How to Use the Calculator 🚀</h3>
+                <ol>
+                    <li><strong>Set Your Organization Profile:</strong>
+                        <ul>
+                            <li>Select your <strong>Industry Sector</strong>, <strong>Primary Region</strong>, <strong>Company Size</strong>, <strong>Type of Infrastructure</strong>, and <strong>Infrastructure Complexity</strong>.</li>
+                            <li>This will apply baseline cost and frequency multipliers to all risk scenarios, tailoring them to your general risk landscape. The applied multipliers are displayed below the profile section.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Input Current Security Program Costs:</strong>
+                        <ul>
+                            <li>Enter the total annual costs for <strong>Security Team Salaries</strong>, <strong>Tools & Technology</strong>, and <strong>Consulting & Assessments</strong>.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Define Risk Scenarios:</strong>
+                        <ul>
+                            <li>Click "<strong>Load Common Scenarios</strong>" to populate the calculator with predefined examples based on industry data, or click "<strong>+ Add Scenario</strong>" to create your own.</li>
+                            <li>For each scenario:
+                                <ul>
+                                    <li>Enter a descriptive <strong>Scenario Name</strong>.</li>
+                                    <li>Input the <strong>Single Loss Event ($) (SLE)</strong>: The estimated direct and indirect financial impact if this specific event occurs once (<em>before</em> organizational profile adjustments).</li>
+                                    <li>Input the <strong>ARO (%)</strong> (Annualized Rate of Occurrence): The likelihood (from 0 to 100) of this event occurring in a typical year (<em>before</em> organizational profile adjustments).</li>
+                                    <li>Input the <strong>Risk Reduction (%)</strong>: The percentage by which you expect your current or planned security controls to reduce the calculated ALE for this specific scenario.</li>
+                                </ul>
+                            </li>
+                            <li>The "Adjusted Baseline ALE" and "Adjusted Residual ALE" fields for each scenario will update automatically, showing the impact of your profile and inputs.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Analyze Financial Impact:</strong>
+                        <ul>
+                            <li>The "Financial Impact Analysis" section on the right will display:
+                                <ul>
+                                    <li><strong>Baseline Annual Risk:</strong> Your total potential loss without controls.</li>
+                                    <li><strong>Residual Annual Risk:</strong> Your remaining potential loss with controls.</li>
+                                    <li><strong>Annual Risk Reduction:</strong> The total financial benefit of your controls.</li>
+                                    <li><strong>Total Program Cost:</strong> Your investment.</li>
+                                    <li><strong>Return on Investment (ROI):</strong> The efficiency of your investment. A positive ROI indicates the financial benefits outweigh the costs.</li>
+                                </ul>
+                            </li>
+                            <li>An <strong>Executive Summary</strong> provides a narrative of these results.</li>
+                            <li>The <strong>Risk Scenario Breakdown</strong> shows how each individual scenario contributes to the overall risk and its estimated ROI based on an allocated portion of the total program cost.</li>
+                        </ul>
+                    </li>
+                     <li><strong>Additional Actions:</strong>
+                        <ul>
+                            <li><strong>📊 Export to Excel:</strong> Download the data and results in an Excel spreadsheet for further analysis or reporting.</li>
+                            <li><strong>💾 Save Data:</strong> Save your current inputs (scenarios, profile, costs) to a JSON file on your computer.</li>
+                            <li><strong>📁 Load Data:</strong> Load previously saved data from a JSON file.</li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <h3>Disclaimer ⚠️</h3>
+                <p>This calculator provides estimates based on the data and methodology described. The actual financial impact of cybersecurity incidents and the effectiveness of controls can vary significantly. The results should be used as one of many inputs for decision-making and not as a definitive financial forecast. Always consult with cybersecurity and financial professionals for tailored advice.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let scenarioCounter = 0;
+        let scenarios = [];
+
+        // --- Helper functions for number formatting ---
+        function parseFormattedNumber(value) {
+            return String(value).replace(/,/g, '');
+        }
+
+        function formatNumberForInput(value) {
+            const num = parseFloat(parseFormattedNumber(value));
+            if (isNaN(num)) {
+                return ''; 
+            }
+            return num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+        
+        function setupCostInputFormatting() {
+            const costInputIds = ['salary-costs', 'tool-costs', 'consulting-costs'];
+            costInputIds.forEach(id => {
+                const inputElement = document.getElementById(id);
+                if (inputElement) {
+                    inputElement.addEventListener('blur', function() {
+                        this.value = formatNumberForInput(this.value);
+                    });
+                    inputElement.addEventListener('focus', function() {
+                        this.value = parseFormattedNumber(this.value);
+                    });
+                    inputElement.value = formatNumberForInput(inputElement.value); 
+                }
+            });
+        }
+
+
+        // --- Adjustment Factor Objects ---
+        const industryAdjustments = {
+            'healthcare': { costMultiplier: 2.01, frequencyMultiplier: 1.3, description: 'Highest breach costs, targeted for disruption' },
+            'financial': { costMultiplier: 1.25, frequencyMultiplier: 1.4, description: 'Highly targeted, high regulatory costs' },
+            'technology': { costMultiplier: 1.0, frequencyMultiplier: 1.2, description: 'Global average risk, high-value IP targets' },
+            'manufacturing': { costMultiplier: 0.8, frequencyMultiplier: 1.5, description: 'Lower costs but high espionage risk, OT impact' },
+            'retail': { costMultiplier: 0.9, frequencyMultiplier: 1.3, description: 'Customer data exposure, payment card risks' },
+            'education': { costMultiplier: 0.6, frequencyMultiplier: 1.1, description: 'Lower costs, student data, limited budgets' },
+            'government': { costMultiplier: 1.1, frequencyMultiplier: 1.6, description: 'High-value targets, nation-state attacks' },
+            'energy': { costMultiplier: 1.3, frequencyMultiplier: 1.4, description: 'Critical infrastructure, operational disruption' },
+            'other': { costMultiplier: 1.0, frequencyMultiplier: 1.0, description: 'Global average risk profile' }
+        };
+        const regionAdjustments = {
+            'north-america': { costMultiplier: 1.2, frequencyMultiplier: 1.1, description: 'Higher labor/breach costs (US avg. higher)' },
+            'europe': { costMultiplier: 1.1, frequencyMultiplier: 1.0, description: 'GDPR compliance costs, moderate threat' },
+            'asia-pacific': { costMultiplier: 0.9, frequencyMultiplier: 1.4, description: 'Lower labor costs, high attack frequency' },
+            'latin-america': { costMultiplier: 0.7, frequencyMultiplier: 1.2, description: 'Lower costs, emerging threat landscape' },
+            'middle-east-africa': { costMultiplier: 0.8, frequencyMultiplier: 1.3, description: 'Moderate costs, geopolitical risks' }
+        };
+        const sizeAdjustments = {
+            'startup': { costMultiplier: 0.4, frequencyMultiplier: 0.8, description: 'Lower absolute costs, may be less targeted' },
+            'small': { costMultiplier: 0.7, frequencyMultiplier: 1.0, description: 'Moderate costs, standard risk profile' },
+            'medium': { costMultiplier: 1.0, frequencyMultiplier: 1.2, description: 'Significant data/systems, attractive targets' },
+            'large': { costMultiplier: 1.8, frequencyMultiplier: 1.5, description: 'High-value targets, complex environments' }
+        };
+        const infrastructureTypeAdjustments = {
+            'on-premise': { costMultiplier: 1.01, frequencyMultiplier: 1.0, description: 'On-premises (Avg Cost: $4.51M, IBM 2024)' },
+            'private-cloud': { costMultiplier: 0.98, frequencyMultiplier: 1.0, description: 'Private cloud (Avg Cost: $4.37M, IBM 2024)' },
+            'public-cloud': { costMultiplier: 1.07, frequencyMultiplier: 1.0, description: 'Public cloud (Avg Cost: $4.74M, IBM 2024)' },
+            'hybrid-cloud': { costMultiplier: 0.97, frequencyMultiplier: 1.0, description: 'Hybrid cloud (Avg Cost: $4.32M, IBM 2024)' },
+            'multi-cloud': { costMultiplier: 1.07, frequencyMultiplier: 1.05, description: 'Multiple env. types (Avg Cost: $4.75M, IBM 2024)' }
+        };
+        const infrastructureComplexityAdjustments = { 
+            'centralized-simplified': { costMultiplier: 0.90, frequencyMultiplier: 0.95, description: 'Low system complexity (Avg Cost: $4.00M, IBM 2024)' },
+            'centralized-complex': { costMultiplier: 1.19, frequencyMultiplier: 1.05, description: 'High system complexity (Avg Cost: $5.29M, IBM 2024)' },
+            'decentralized-complex': { costMultiplier: 1.25, frequencyMultiplier: 1.1, description: 'High complexity, decentralized (Extrapolated for added challenges)' }
+        };
+
+        const defaultScenarios = [
+            { name: 'Ransomware Attack', sle: 2500000, aro: 25, reduction: 45, description: 'Based on 2024 data: 23% of all breaches, $115K median ransom' },
+            { name: 'Data Breach (Customer PII)', sle: 4880000, aro: 15, reduction: 35, description: 'Illustrative global avg. SLE, adjust per profile' },
+            { name: 'Supply Chain Compromise', sle: 3200000, aro: 18, reduction: 30, description: '30% of breaches involve third parties (DBIR)' },
+            { name: 'Human Error/Insider Threat', sle: 1800000, aro: 35, reduction: 40, description: '28% of breaches caused by human error (DBIR)' },
+            { name: 'Cloud Misconfiguration', sle: 5170000, aro: 20, reduction: 40, description: 'Misconfigurations are a leading cause of cloud breaches' }
+        ];
+
+        function addScenario(preset = null) {
+            scenarioCounter++;
+            const scenario = preset || {
+                name: `New Scenario ${scenarioCounter}`,
+                sle: 1000000,
+                aro: 10,
+                reduction: 30, 
+                description: ''
+            };
+            scenarios.push({...scenario, id: scenarioCounter});
+            renderScenarios();
+            calculateROI();
+        }
+
+        function removeScenario(id) {
+            scenarios = scenarios.filter(s => s.id !== id);
+            renderScenarios();
+            calculateROI();
+        }
+
+        function updateScenario(id, field, value) {
+            const scenario = scenarios.find(s => s.id === id);
+            if (scenario) {
+                if (field === 'sle') {
+                    scenario[field] = parseFloat(parseFormattedNumber(value)) || 0;
+                } else {
+                    scenario[field] = field === 'name' ? value : parseFloat(value) || 0;
+                }
+                 calculateROI(); 
+            }
+        }
+
+
+        function loadDefaults() {
+            scenarios = [];
+            scenarioCounter = 0;
+            defaultScenarios.forEach(scenario => addScenario(scenario)); 
+            if(scenarios.length > 0) { 
+                 applyIndustryRegionAdjustments(); 
+            }
+        }
+
+        function applyIndustryRegionAdjustments() {
+            const industry = document.getElementById('industry-select').value;
+            const region = document.getElementById('region-select').value;
+            const size = document.getElementById('size-select').value;
+            const infraType = document.getElementById('infra-type-select').value;
+            const infraComplexity = document.getElementById('infra-complexity-select').value;
+            
+            const industryAdj = industryAdjustments[industry];
+            const regionAdj = regionAdjustments[region];
+            const sizeAdj = sizeAdjustments[size];
+            const infraTypeAdj = infrastructureTypeAdjustments[infraType];
+            const infraComplexityAdj = infrastructureComplexityAdjustments[infraComplexity];
+            
+            const totalCostMultiplier = industryAdj.costMultiplier * regionAdj.costMultiplier * sizeAdj.costMultiplier * infraTypeAdj.costMultiplier * infraComplexityAdj.costMultiplier;
+            const totalFrequencyMultiplier = industryAdj.frequencyMultiplier * regionAdj.frequencyMultiplier * sizeAdj.frequencyMultiplier * infraTypeAdj.frequencyMultiplier * infraComplexityAdj.frequencyMultiplier;
+
+            const infoDiv = document.getElementById('risk-adjustment-info');
+            infoDiv.style.display = 'block';
+            infoDiv.innerHTML = `
+                <strong>Risk Profile Adjustments Applied:</strong><br>
+                <strong>Industry (${industry.charAt(0).toUpperCase() + industry.slice(1)}):</strong> ${industryAdj.description} (Cost: ${industryAdj.costMultiplier.toFixed(2)}x, Freq: ${industryAdj.frequencyMultiplier.toFixed(2)}x)<br>
+                <strong>Region (${region.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}):</strong> ${regionAdj.description} (Cost: ${regionAdj.costMultiplier.toFixed(2)}x, Freq: ${regionAdj.frequencyMultiplier.toFixed(2)}x)<br>
+                <strong>Company Size (${size.charAt(0).toUpperCase() + size.slice(1)}):</strong> ${sizeAdj.description} (Cost: ${sizeAdj.costMultiplier.toFixed(2)}x, Freq: ${sizeAdj.frequencyMultiplier.toFixed(2)}x)<br>
+                <strong>Infrastructure Type (${document.getElementById('infra-type-select').selectedOptions[0].text}):</strong> ${infraTypeAdj.description} (Cost: ${infraTypeAdj.costMultiplier.toFixed(2)}x, Freq: ${infraTypeAdj.frequencyMultiplier.toFixed(2)}x)<br>
+                <strong>Infrastructure Complexity (${document.getElementById('infra-complexity-select').selectedOptions[0].text}):</strong> ${infraComplexityAdj.description} (Cost: ${infraComplexityAdj.costMultiplier.toFixed(2)}x, Freq: ${infraComplexityAdj.frequencyMultiplier.toFixed(2)}x)<br>
+                <strong style="color: #1e3c72;"><em>Overall Multipliers → Cost: ${totalCostMultiplier.toFixed(2)}x | Frequency: ${totalFrequencyMultiplier.toFixed(2)}x</em></strong>
+            `;
+            
+            renderScenarios(); 
+            calculateROI();    
+        }
+
+        function getAdjustedScenarioValues(scenario) {
+            const industry = document.getElementById('industry-select').value;
+            const region = document.getElementById('region-select').value;
+            const size = document.getElementById('size-select').value;
+            const infraType = document.getElementById('infra-type-select').value;
+            const infraComplexity = document.getElementById('infra-complexity-select').value;
+            
+            const industryAdj = industryAdjustments[industry];
+            const regionAdj = regionAdjustments[region];
+            const sizeAdj = sizeAdjustments[size];
+            const infraTypeAdj = infrastructureTypeAdjustments[infraType];
+            const infraComplexityAdj = infrastructureComplexityAdjustments[infraComplexity];
+            
+            const totalCostMultiplier = industryAdj.costMultiplier * regionAdj.costMultiplier * sizeAdj.costMultiplier * infraTypeAdj.costMultiplier * infraComplexityAdj.costMultiplier;
+            const totalFrequencyMultiplier = industryAdj.frequencyMultiplier * regionAdj.frequencyMultiplier * sizeAdj.frequencyMultiplier * infraTypeAdj.frequencyMultiplier * infraComplexityAdj.frequencyMultiplier;
+            
+            return {
+                adjustedSLE: scenario.sle * totalCostMultiplier,
+                adjustedARO: Math.min(scenario.aro * totalFrequencyMultiplier, 95) 
+            };
+        }
+
+        function renderScenarios() {
+            const container = document.getElementById('scenarios-container');
+            container.innerHTML = '';
+            
+            scenarios.forEach(scenario => {
+                const adjusted = getAdjustedScenarioValues(scenario); 
+                const baselineALE = (adjusted.adjustedSLE * adjusted.adjustedARO) / 100;
+                const residualALE = baselineALE * (1 - (scenario.reduction / 100));
+                
+                const div = document.createElement('div');
+                div.className = 'scenario-group';
+                div.innerHTML = `
+                    <div class="scenario-header">
+                        <div class="scenario-name">${scenario.name}</div>
+                        <button class="remove-scenario" onclick="removeScenario(${scenario.id})">Remove</button>
+                    </div>
+                    ${scenario.description ? `<div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 15px;">${scenario.description}</div>` : ''}
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Scenario Name</label>
+                            <input type="text" value="${scenario.name}" oninput="updateScenario(${scenario.id}, 'name', this.value)">
+                        </div>
+                        <div class="input-group">
+                            <label>Single Loss Event ($) (SLE)</label>
+                            <input type="text" inputmode="numeric" id="sle-${scenario.id}" value="${formatNumberForInput(scenario.sle)}" 
+                                   onfocus="this.value = parseFormattedNumber(this.value);" 
+                                   onblur="this.value = formatNumberForInput(this.value); updateScenario(${scenario.id}, 'sle', this.value);">
+                        </div>
+                        <div class="input-group">
+                            <label>ARO (%)</label>
+                            <input type="number" value="${scenario.aro}" min="0" max="100" oninput="updateScenario(${scenario.id}, 'aro', this.value)">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Risk Reduction (%)</label>
+                            <input type="number" value="${scenario.reduction}" min="0" max="100" oninput="updateScenario(${scenario.id}, 'reduction', this.value)">
+                        </div>
+                        <div class="input-group">
+                            <label>Adjusted Baseline ALE</label>
+                            <input type="text" value="$${baselineALE.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}" readonly style="background: #e3f2fd; font-weight: bold;">
+                        </div>
+                        <div class="input-group">
+                            <label>Adjusted Residual ALE</label>
+                            <input type="text" value="$${residualALE.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}" readonly style="background: #e8f5e8; font-weight: bold;">
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #6c757d; margin-top: 10px; font-style: italic;">
+                        Adjusted SLE: $${adjusted.adjustedSLE.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})} × Adjusted ARO: ${adjusted.adjustedARO.toFixed(1)}% = Baseline ALE: $${baselineALE.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+
+        function calculateROI() {
+            let totalBaselineALE = 0;
+            let totalResidualALE = 0;
+            
+            scenarios.forEach(scenario => {
+                const adjusted = getAdjustedScenarioValues(scenario);
+                const baseline = (adjusted.adjustedSLE * adjusted.adjustedARO) / 100;
+                const residual = baseline * (1 - (scenario.reduction / 100));
+                totalBaselineALE += baseline;
+                totalResidualALE += residual;
+            });
+            
+            const riskReduction = totalBaselineALE - totalResidualALE;
+            const programCost = getProgramCost();
+            const roi = programCost > 0 ? ((riskReduction - programCost) / programCost) * 100 : (riskReduction > 0 ? Infinity : 0); 
+            
+            const formatCurrency = (value) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+
+            document.getElementById('baseline-ale').textContent = formatCurrency(totalBaselineALE);
+            document.getElementById('residual-ale').textContent = formatCurrency(totalResidualALE);
+            document.getElementById('risk-reduction').textContent = formatCurrency(riskReduction);
+            document.getElementById('program-cost').textContent = formatCurrency(programCost);
+            
+            if (roi === Infinity) {
+                 document.getElementById('roi-value').textContent = 'Infinite ROI (Cost is $0)';
+            } else {
+                 document.getElementById('roi-value').textContent = `${roi.toFixed(1)}%`;
+            }
+            
+            const roiCard = document.getElementById('roi-card');
+            roiCard.className = roi >= 0 ? 'metric-card roi-positive' : 'metric-card roi-negative';
+            if (programCost === 0 && riskReduction > 0) roiCard.className = 'metric-card roi-positive';
+
+            updateExecutiveSummary(totalBaselineALE, totalResidualALE, riskReduction, programCost, roi);
+            updateScenarioBreakdown(totalBaselineALE, programCost); 
+        }
+
+        function getProgramCost() {
+            const salary = parseFloat(parseFormattedNumber(document.getElementById('salary-costs').value)) || 0;
+            const tools = parseFloat(parseFormattedNumber(document.getElementById('tool-costs').value)) || 0;
+            const consulting = parseFloat(parseFormattedNumber(document.getElementById('consulting-costs').value)) || 0;
+            return salary + tools + consulting;
+        }
+
+        function updateExecutiveSummary(baseline, residual, reduction, cost, roi) {
+            const summary = document.getElementById('executive-summary');
+            const recommendation = roi >= 0 ? 
+                'Your cybersecurity program shows positive ROI and effectively reduces risk.' :
+                'Consider optimizing your security controls or adjusting program costs to improve ROI.';
+            
+            const formatCurrency = (value) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+            let roiText = `${roi.toFixed(1)}%`;
+            if (roi === Infinity) {
+                roiText = 'Infinite (program cost is $0 with positive risk reduction)';
+            }
+
+            summary.innerHTML = `
+                Your organization faces <strong>${formatCurrency(baseline)}</strong> in annual cyber risk. 
+                With proposed security controls, residual risk drops to <strong>${formatCurrency(residual)}</strong>, 
+                providing <strong>${formatCurrency(reduction)}</strong> in risk reduction for a program cost of 
+                <strong>${formatCurrency(cost)}</strong>. This yields a <strong>${roiText}</strong> ROI.<br><br>
+                <strong>Recommendation:</strong> ${recommendation}
+            `;
+        }
+
+        function updateScenarioBreakdown(overallTotalBaselineALE, overallProgramCost) {
+            const container = document.getElementById('scenario-breakdown');
+            container.innerHTML = '';
+            
+            const headerDiv = document.createElement('div');
+            headerDiv.style.cssText = 'background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; color: #1565c0;';
+            headerDiv.innerHTML = '<strong>Format:</strong> Adj. Baseline Risk → Adj. Residual Risk (Scenario ROI)';
+            container.appendChild(headerDiv);
+            
+            const formatCurrency = (value) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+
+            scenarios.forEach(scenario => {
+                const adjusted = getAdjustedScenarioValues(scenario);
+                const scenarioBaselineALE = (adjusted.adjustedSLE * adjusted.adjustedARO) / 100;
+                const scenarioResidualALE = scenarioBaselineALE * (1 - (scenario.reduction / 100));
+                const scenarioSavings = scenarioBaselineALE - scenarioResidualALE;
+
+                let proportionOfRisk = 0;
+                if (overallTotalBaselineALE > 0) { 
+                    proportionOfRisk = scenarioBaselineALE / overallTotalBaselineALE;
+                }
+                const allocatedCostForScenario = overallProgramCost * proportionOfRisk;
+
+                let scenarioRoiText = '';
+                if (allocatedCostForScenario > 0) {
+                    const scenarioROI = ((scenarioSavings - allocatedCostForScenario) / allocatedCostForScenario) * 100;
+                    scenarioRoiText = `${scenarioROI.toFixed(1)}%`;
+                } else { 
+                    if (scenarioSavings > 0) {
+                        scenarioRoiText = "Infinite"; 
+                    } else { 
+                        scenarioRoiText = "N/A"; 
+                    }
+                }
+                
+                const div = document.createElement('div');
+                div.style.cssText = 'background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-bottom: 15px;';
+                div.innerHTML = `
+                    <div style="font-weight: bold; color: #2c3e50; font-size: 1.1rem; margin-bottom: 10px;">
+                        ${scenario.name}
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: center; font-size: 0.95rem;">
+                        <div style="text-align: center;">
+                            <div style="color: #e74c3c; font-weight: bold; font-size: 1.1rem;">${formatCurrency(scenarioBaselineALE)}</div>
+                            <div style="color: #6c757d; font-size: 0.8rem;">Adj. Baseline Risk</div>
+                        </div>
+                        <div style="color: #6c757d; font-size: 1.2rem; text-align: center;">→</div>
+                        <div style="text-align: center;">
+                            <div style="color: #f39c12; font-weight: bold; font-size: 1.1rem;">${formatCurrency(scenarioResidualALE)}</div>
+                            <div style="color: #6c757d; font-size: 0.8rem;">Adj. Residual Risk</div>
+                        </div>
+                        <div style="color: #27ae60; font-size: 1.2rem; text-align: center; font-weight: bold;">📊</div>
+                        <div style="text-align: center;">
+                            <div style="color: #27ae60; font-weight: bold; font-size: 1.1rem;">${scenarioRoiText}</div>
+                            <div style="color: #6c757d; font-size: 0.8rem;">Scenario ROI</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #dee2e6; color: #6c757d; font-size: 0.85rem;">
+                        Risk Reduction: ${scenario.reduction}% | Adj. ARO: ${adjusted.adjustedARO.toFixed(1)}% <br>
+                        Scenario Savings: ${formatCurrency(scenarioSavings)} | Est. Allocated Cost: ${formatCurrency(allocatedCostForScenario)}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function exportToExcel() {
+            const profile = {
+                industry: document.getElementById('industry-select').value,
+                region: document.getElementById('region-select').value,
+                size: document.getElementById('size-select').value,
+                infraType: document.getElementById('infra-type-select').value,
+                infraComplexity: document.getElementById('infra-complexity-select').value
+            };
+            const costs = {
+                salary: parseFloat(parseFormattedNumber(document.getElementById('salary-costs').value)) || 0,
+                tools: parseFloat(parseFormattedNumber(document.getElementById('tool-costs').value)) || 0,
+                consulting: parseFloat(parseFormattedNumber(document.getElementById('consulting-costs').value)) || 0
+            };
+            
+            let overallTotalBaselineALE = 0;
+            let overallTotalResidualALE = 0;
+            scenarios.forEach(s => {
+                const adj = getAdjustedScenarioValues(s);
+                const baseline = (adj.adjustedSLE * adj.adjustedARO) / 100;
+                const residual = baseline * (1 - s.reduction/100);
+                overallTotalBaselineALE += baseline;
+                overallTotalResidualALE += residual;
+            });
+            const programCost = costs.salary + costs.tools + costs.consulting;
+            const totalRiskReduction = overallTotalBaselineALE - overallTotalResidualALE;
+            const overallRoi = programCost > 0 ? ((totalRiskReduction - programCost) / programCost) * 100 : (totalRiskReduction > 0 ? Infinity : 0) ;
+
+            const wb = XLSX.utils.book_new();
+            
+            const profileData = [
+                ['Organization Profile', ''],
+                ['Industry', document.getElementById('industry-select').selectedOptions[0].text],
+                ['Region', document.getElementById('region-select').selectedOptions[0].text],
+                ['Company Size', document.getElementById('size-select').selectedOptions[0].text],
+                ['Infrastructure Type', document.getElementById('infra-type-select').selectedOptions[0].text],
+                ['Infrastructure Complexity', document.getElementById('infra-complexity-select').selectedOptions[0].text],
+                ['', ''],
+                ['Applied Adjustments', ''],
+                ['Industry Multiplier (Cost|Freq)', `${industryAdjustments[profile.industry].costMultiplier.toFixed(2)}x | ${industryAdjustments[profile.industry].frequencyMultiplier.toFixed(2)}x`],
+                ['Region Multiplier (Cost|Freq)', `${regionAdjustments[profile.region].costMultiplier.toFixed(2)}x | ${regionAdjustments[profile.region].frequencyMultiplier.toFixed(2)}x`],
+                ['Size Multiplier (Cost|Freq)', `${sizeAdjustments[profile.size].costMultiplier.toFixed(2)}x | ${sizeAdjustments[profile.size].frequencyMultiplier.toFixed(2)}x`],
+                ['Infra Type Multiplier (Cost|Freq)', `${infrastructureTypeAdjustments[profile.infraType].costMultiplier.toFixed(2)}x | ${infrastructureTypeAdjustments[profile.infraType].frequencyMultiplier.toFixed(2)}x`],
+                ['Infra Complexity Multiplier (Cost|Freq)', `${infrastructureComplexityAdjustments[profile.infraComplexity].costMultiplier.toFixed(2)}x | ${infrastructureComplexityAdjustments[profile.infraComplexity].frequencyMultiplier.toFixed(2)}x`]
+            ];
+            const ws0 = XLSX.utils.aoa_to_sheet(profileData);
+            XLSX.utils.book_append_sheet(wb, ws0, 'Organization Profile');
+            
+            const scenarioExportData = scenarios.map(s => {
+                const adj = getAdjustedScenarioValues(s);
+                const scenarioBaselineALE = (adj.adjustedSLE * adj.adjustedARO) / 100;
+                const scenarioResidualALE = scenarioBaselineALE * (1 - s.reduction/100);
+                const scenarioSavings = scenarioBaselineALE - scenarioResidualALE;
+                
+                let proportionOfRisk = 0;
+                if (overallTotalBaselineALE > 0) {
+                    proportionOfRisk = scenarioBaselineALE / overallTotalBaselineALE;
+                }
+                const allocatedCostForScenario = programCost * proportionOfRisk;
+                let scenarioRoiDisplayText;
+
+                if (allocatedCostForScenario > 0) {
+                    const scenarioRoiValue = ((scenarioSavings - allocatedCostForScenario) / allocatedCostForScenario) * 100;
+                    scenarioRoiDisplayText = scenarioRoiValue.toFixed(1);
+                } else {
+                    scenarioRoiDisplayText = (scenarioSavings > 0) ? 'Infinite' : 'N/A';
+                }
+                return {
+                    'Scenario': s.name,
+                    'Single Loss Event ($) (SLE)': s.sle, 
+                    'ARO (%)': s.aro, 
+                    'Risk Reduction (%)': s.reduction,
+                    'Adjusted SLE ($)': adj.adjustedSLE,
+                    'Adjusted ARO (%)': adj.adjustedARO,
+                    'Scenario Baseline ALE ($)': scenarioBaselineALE,
+                    'Scenario Residual ALE ($)': scenarioResidualALE,
+                    'Scenario Annual Savings ($)': scenarioSavings,
+                    'Est. Allocated Program Cost ($)': allocatedCostForScenario,
+                    'Scenario ROI (%)': scenarioRoiDisplayText,
+                    'Description': s.description || ''
+                };
+            });
+            const ws1 = XLSX.utils.json_to_sheet(scenarioExportData);
+            XLSX.utils.book_append_sheet(wb, ws1, 'Risk Scenarios');
+            
+            const summaryExportData = [
+                ['Metric', 'Value'],
+                ['Total Baseline Annual Loss Expectancy ($)', overallTotalBaselineALE],
+                ['Total Residual Annual Loss Expectancy ($)', overallTotalResidualALE],
+                ['Total Annual Risk Reduction ($)', totalRiskReduction],
+                ['Total Security Program Cost ($)', programCost],
+                ['Overall Program ROI (%)', overallRoi === Infinity ? 'Infinite' : overallRoi.toFixed(1)],
+                ['', ''],
+                ['Cost Breakdown', ''],
+                ['Security Team Salaries ($)', costs.salary],
+                ['Tools & Technology ($)', costs.tools],
+                ['Consulting & Assessments ($)', costs.consulting]
+            ];
+            const ws2 = XLSX.utils.aoa_to_sheet(summaryExportData);
+            XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+            
+            XLSX.writeFile(wb, `Cybersecurity_ROI_Analysis_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function saveData() {
+            const data = {
+                scenarios: scenarios,
+                profile: {
+                    industry: document.getElementById('industry-select').value,
+                    region: document.getElementById('region-select').value,
+                    size: document.getElementById('size-select').value,
+                    infraType: document.getElementById('infra-type-select').value,
+                    infraComplexity: document.getElementById('infra-complexity-select').value
+                },
+                costs: {
+                    salary: parseFormattedNumber(document.getElementById('salary-costs').value), 
+                    tools: parseFormattedNumber(document.getElementById('tool-costs').value),
+                    consulting: parseFormattedNumber(document.getElementById('consulting-costs').value)
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Cybersecurity_ROI_Data_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a); 
+            a.click();
+            document.body.removeChild(a); 
+            URL.revokeObjectURL(url);
+        }
+
+        function loadData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            scenarios = data.scenarios || [];
+                            scenarioCounter = scenarios.reduce((maxId, s) => Math.max(maxId, s.id || 0), 0);
+
+                            if (data.profile) {
+                                document.getElementById('industry-select').value = data.profile.industry || 'technology';
+                                document.getElementById('region-select').value = data.profile.region || 'north-america';
+                                document.getElementById('size-select').value = data.profile.size || 'medium'; // Default to medium if not in file
+                                document.getElementById('infra-type-select').value = data.profile.infraType || 'hybrid-cloud';
+                                document.getElementById('infra-complexity-select').value = data.profile.infraComplexity || 'centralized-simplified';
+                            }
+                            
+                            if (data.costs) { 
+                                document.getElementById('salary-costs').value = data.costs.salary || 750000; // Use new default if not in file
+                                document.getElementById('tool-costs').value = data.costs.tools || 200000;
+                                document.getElementById('consulting-costs').value = data.costs.consulting || 50000;
+                            } else { 
+                                document.getElementById('salary-costs').value = 750000; 
+                                document.getElementById('tool-costs').value = 200000;
+                                document.getElementById('consulting-costs').value = 50000;
+                            }
+                            
+                            setupCostInputFormatting(); 
+                            applyIndustryRegionAdjustments(); 
+                            alert('Data loaded successfully!');
+                        } catch (error) {
+                            alert('Error loading data: ' + error.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        const helpModal = document.getElementById('help-modal');
+        const helpBtn = document.getElementById('help-modal-button');
+        const closeHelpSpan = document.getElementById('close-help-modal');
+
+        helpBtn.onclick = function() {
+            helpModal.style.display = "block";
+        }
+        closeHelpSpan.onclick = function() {
+            helpModal.style.display = "none";
+        }
+        window.onclick = function(event) {
+            if (event.target == helpModal) {
+                helpModal.style.display = "none";
+            }
+        }
+
+        function initialize() {
+            document.getElementById('industry-select').value = 'technology'; 
+            document.getElementById('region-select').value = 'north-america'; 
+            document.getElementById('size-select').value = 'medium'; 
+            document.getElementById('infra-type-select').value = 'hybrid-cloud'; 
+            document.getElementById('infra-complexity-select').value = 'centralized-simplified'; 
+            
+            loadDefaults();
+            setupCostInputFormatting(); 
+            applyIndustryRegionAdjustments(); 
+        }
+
+        initialize();
+    </script>
+</body>
+</html>
