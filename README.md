@@ -54,7 +54,7 @@ Key concepts:
 
 ## 📂 Files
 
-- `adv-risk-calculator.html`: Full standalone app
+- `index.html`: Full standalone app
 
 ---
 
